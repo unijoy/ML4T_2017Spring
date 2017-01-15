@@ -8,11 +8,12 @@ from util import get_data, plot_data
 
 # This is the function that will be tested by the autograder
 # The student must update this code to properly implement the functionality
-def assess_portfolio(sd = dt.datetime(2008,1,1), ed = dt.datetime(2009,1,1), \
-    syms = ['GOOG','AAPL','GLD','XOM'], \
-    allocs=[0.1,0.2,0.3,0.4], \
-    sv=1000000, rfr=0.0, sf=252.0, \
-    gen_plot=False):
+def assess_portfolio(sd=dt.datetime(2008, 1, 1), ed=dt.datetime(2009, 1, 1), \
+                     syms=['GOOG', 'AAPL', 'GLD', 'XOM'], \
+                     allocs=[0.1, 0.2, 0.3, 0.4], \
+                     sv=1000000, rfr=0.0, sf=252.0, \
+                     gen_plot=False):
+    import math
 
     # Read in adjusted closing prices for given symbols, date range
     dates = pd.date_range(sd, ed)
@@ -21,19 +22,32 @@ def assess_portfolio(sd = dt.datetime(2008,1,1), ed = dt.datetime(2009,1,1), \
     prices_SPY = prices_all['SPY']  # only SPY, for comparison later
 
     # Get daily portfolio value
-    port_val = prices_SPY # add code here to compute daily portfolio values
+    port_val = prices_SPY  # add code here to compute daily portfolio values
+    df = prices.copy()
+    df[1:] = (df[1:] / df[0:-1].values)
+    for j in range(len(allocs)):
+        df.ix[0, j] = allocs[j]
 
-    # Get portfolio statistics (note: std_daily_ret = volatility)
-    cr, adr, sddr, sr = [0.25, 0.001, 0.0005, 2.1] # add code here to compute stats
+    days = prices.shape[0]
+    for i in range(1, days):
+        df.ix[i, :] = df.ix[i, :] * df.ix[i - 1, :]
+    df['cumm'] = df.sum(axis=1)
+    df['daily'] = (df.ix[1:, 'cumm'] / df.ix[0:-1, 'cumm'].values) - 1.
+    df['daily_rf'] = df['daily'] - rfr ** (1. / days)
+    sr = math.sqrt(sf) * df['daily_rf'].mean() / df['daily_rf'].std()
+    cr = df.ix[-1, 'cumm'] - 1
+    sddr = df.ix[1:, 'daily'].std()
+    adr = df.ix[1:, 'daily'].mean()
 
     # Compare daily portfolio value with SPY using a normalized plot
     if gen_plot:
         # add code to plot here
-        df_temp = pd.concat([port_val, prices_SPY], keys=['Portfolio', 'SPY'], axis=1)
-        pass
+        # df_temp = pd.concat([port_val, prices_SPY], keys=['Portfolio', 'SPY'], axis=1)
+        df_temp = df['cumm']
+        df_temp.plot()
 
     # Add code here to properly compute end value
-    ev = sv
+    ev = sv * cr
 
     return cr, adr, sddr, sr, ev
 
