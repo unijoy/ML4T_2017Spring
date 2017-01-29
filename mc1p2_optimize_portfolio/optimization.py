@@ -7,7 +7,7 @@ import datetime as dt
 from util import get_data, plot_data
 
 # This is the function that will be tested by the autograder
-# The student must update this code to properly implement the functionality
+# 11The student must update this code to properly implement the functionality
 def optimize_portfolio(sd=dt.datetime(2008,1,1), ed=dt.datetime(2009,1,1), \
     syms=['GOOG','AAPL','GLD','XOM'], gen_plot=False):
 
@@ -39,7 +39,8 @@ def optimize_portfolio(sd=dt.datetime(2008,1,1), ed=dt.datetime(2009,1,1), \
         cr = df.ix[-1, 'cumm'] - 1
         sddr = df.ix[1:, 'daily'].std()
         adr = df.ix[1:, 'daily'].mean()
-        return cr, adr, sddr, sr, df['cumm']*100
+        df_cumm = df['cumm']/df.ix[0,'cumm']
+        return cr, adr, sddr, sr, df_cumm
 
     def get_negative_sharpe(allocs,prices ):
         import math
@@ -79,6 +80,7 @@ def optimize_portfolio(sd=dt.datetime(2008,1,1), ed=dt.datetime(2009,1,1), \
     prices = prices_all[syms]  # only portfolio symbols
     prices_SPY = prices_all['SPY']  # only SPY, for comparison later
     allocs = min_sharpe(syms,prices,get_negative_sharpe)
+    prices_SPY = prices_SPY/prices_SPY.ix[0,:]
     cr, adr, sddr, sr ,df_cumm= assess_portfolio(sd = sd, ed = ed,syms = syms, allocs = allocs)
 
     # Get daily portfolio value
