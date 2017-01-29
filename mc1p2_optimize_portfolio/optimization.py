@@ -29,8 +29,6 @@ def optimize_portfolio(sd=dt.datetime(2008,1,1), ed=dt.datetime(2009,1,1), \
         for j in range(len(allocs)):
             df.ix[0, j] = allocs[j]
 
-        allocs = np.asarray([0.2, 0.2, 0.3, 0.3, 0.0])
-
         days = prices.shape[0]
         for i in range(1, days):
             df.ix[i, :] = df.ix[i, :] * df.ix[i - 1, :]
@@ -41,7 +39,7 @@ def optimize_portfolio(sd=dt.datetime(2008,1,1), ed=dt.datetime(2009,1,1), \
         cr = df.ix[-1, 'cumm'] - 1
         sddr = df.ix[1:, 'daily'].std()
         adr = df.ix[1:, 'daily'].mean()
-        return cr, adr, sddr, sr
+        return cr, adr, sddr, sr, df['cumm']*100
 
     def get_negative_sharpe(allocs,prices ):
         import math
@@ -81,14 +79,15 @@ def optimize_portfolio(sd=dt.datetime(2008,1,1), ed=dt.datetime(2009,1,1), \
     prices = prices_all[syms]  # only portfolio symbols
     prices_SPY = prices_all['SPY']  # only SPY, for comparison later
     allocs = min_sharpe(syms,prices,get_negative_sharpe)
-    cr, adr, sddr, sr = assess_portfolio(sd = sd, ed = ed,syms = syms, allocs = allocs)
+    cr, adr, sddr, sr ,df_cumm= assess_portfolio(sd = sd, ed = ed,syms = syms, allocs = allocs)
 
     # Get daily portfolio value
-    port_val = prices_SPY # add code here to compute daily portfolio values
+    port_val = df_cumm # add code here to compute daily portfolio values
 
     # Compare daily portfolio value with SPY using a normalized plot
     if gen_plot:
         df_temp = pd.concat([port_val, prices_SPY], keys=['Portfolio', 'SPY'], axis=1)
+        print df_temp.head()
         ax = df_temp.plot(title="Stock prices", fontsize=12)
         ax.set_xlabel("Date")
         ax.set_ylabel("Price")
@@ -97,7 +96,6 @@ def optimize_portfolio(sd=dt.datetime(2008,1,1), ed=dt.datetime(2009,1,1), \
         fig.savefig("comparison_optimal.png")
 
     return allocs, cr, adr, sddr, sr
-
 
 def test_code():
     # This function WILL NOT be called by the auto grader
