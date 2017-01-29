@@ -62,8 +62,9 @@ def optimize_portfolio(sd=dt.datetime(2008,1,1), ed=dt.datetime(2009,1,1), \
 
     import scipy.optimize as spo
 
-    def min_sharpe(data,error_func):
-        allocs = np.asarray([0.2, 0.2, 0.3, 0.3, 0.0])
+    def min_sharpe(syms,data,error_func):
+        # Init the allocations for the optimal portfolio
+        allocs = [0.1 for x in syms]
 
         #Says one minus the sum of all variables must be zero
         cons = ({'type': 'eq', 'fun': lambda x:  1 - sum(x)})
@@ -79,12 +80,7 @@ def optimize_portfolio(sd=dt.datetime(2008,1,1), ed=dt.datetime(2009,1,1), \
     prices_all = get_data(syms, dates)  # automatically adds SPY
     prices = prices_all[syms]  # only portfolio symbols
     prices_SPY = prices_all['SPY']  # only SPY, for comparison later
-
-    # find the allocations for the optimal portfolio
-    allocs = np.asarray([0.2, 0.2, 0.3, 0.3, 0.0]) # add code here to find the allocations
-    cr, adr, sddr, sr = [0.25, 0.001, 0.0005, 2.1] # add code here to compute stats
-
-    allocs = min_sharpe(prices,get_negative_sharpe)
+    allocs = min_sharpe(syms,prices,get_negative_sharpe)
     cr, adr, sddr, sr = assess_portfolio(sd = sd, ed = ed,syms = syms, allocs = allocs)
 
     # Get daily portfolio value
@@ -102,6 +98,7 @@ def optimize_portfolio(sd=dt.datetime(2008,1,1), ed=dt.datetime(2009,1,1), \
         fig.savefig("comparison_optimal.png")
 
     return allocs, cr, adr, sddr, sr
+
 
 def test_code():
     # This function WILL NOT be called by the auto grader
