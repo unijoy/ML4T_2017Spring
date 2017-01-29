@@ -85,7 +85,6 @@ def optimize_portfolio(sd=dt.datetime(2008,1,1), ed=dt.datetime(2009,1,1), \
 
     # Get daily portfolio value
     port_val = prices_SPY # add code here to compute daily portfolio values
-    port_val = prices_all['GOOG']
 
     # Compare daily portfolio value with SPY using a normalized plot
     if gen_plot:
