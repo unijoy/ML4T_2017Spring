@@ -15,7 +15,7 @@ if __name__=="__main__":
     data = np.array([map(float,s.strip().split(',')) for s in inf.readlines()])
 
     # compute how much of the data is training and testing
-    train_rows = math.floor(0.6* data.shape[0])
+    train_rows = int(0.6* data.shape[0])
     test_rows = data.shape[0] - train_rows
 
     # separate out training and testing data
