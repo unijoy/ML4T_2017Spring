@@ -30,6 +30,7 @@ if __name__=="__main__":
     # create a learner and train it
     learner = lrl.LinRegLearner(verbose = True) # create a LinRegLearner
     learner.addEvidence(trainX, trainY) # train it
+    print learner.author()
 
     # evaluate in sample
     predY = learner.query(trainX) # get the predictions
