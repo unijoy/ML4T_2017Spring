@@ -33,5 +33,8 @@ class BagLearner(object):
             print len(np.mean(predicts,axis=0))
             return np.mean(predicts,axis=0)
 
+    def author(self):
+        return 'llee81'
+
 if __name__=="__main__":
     print "the secret clue is 'zzyzx'"

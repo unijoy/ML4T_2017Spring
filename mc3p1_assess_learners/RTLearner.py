@@ -62,6 +62,9 @@ class RTLearner(object):
     def query(self, points):
         return [self.root.decide(example) for example in points]
 
+    def author(self):
+        return 'llee81'
+
 
 if __name__=="__main__":
     print "the secret clue is 'zzyzx'"
