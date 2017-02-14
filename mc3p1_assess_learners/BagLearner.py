@@ -4,6 +4,8 @@ A simple wrapper for linear regression.  (c) 2015 Tucker Balch
 
 import numpy as np
 import math
+import LinRegLearner as lrl
+import RTLearner as rt
 
 class BagLearner(object):
     def __init__(self,learner = rt.RTLearner, kwargs = {"leaf_size":1}, bags = 20, boost = False, verbose = False):
