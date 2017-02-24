@@ -9,6 +9,9 @@ class LinRegLearner(object):
     def __init__(self, verbose = False):
         pass # move along, these aren't the drones you're looking for
 
+    def author(self):
+        return 'tb34' # replace tb34 with your Georgia Tech username
+
     def addEvidence(self,dataX,dataY):
         """
         @summary: Add training data to learner
