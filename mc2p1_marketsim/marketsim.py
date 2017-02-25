@@ -6,18 +6,61 @@ import datetime as dt
 import os
 from util import get_data, plot_data
 
-def compute_portvals(orders_file = "./orders/orders.csv", start_val = 1000000):
-    # this is the function the autograder will call to test your code
-    # TODO: Your code here
 
-    # In the template, instead of computing the value of the portfolio, we just
-    # read in the value of IBM over 6 months
-    start_date = dt.datetime(2008,1,1)
-    end_date = dt.datetime(2008,6,1)
-    portvals = get_data(['IBM'], pd.date_range(start_date, end_date))
-    portvals = portvals[['IBM']]  # remove SPY
+def author():
+    return 'llee81'
 
-    return portvals
+
+def compute_portvals(orders_file="./orders/orders.csv", start_val=1000000):
+    orders_df = pd.read_csv(orders_file, index_col='Date', parse_dates=True, na_values=['nan'])
+
+    # GET PRICES OF ALL USED SYMBOLS
+    start_date = orders_df.index[0]
+    end_date = orders_df.index[-1]
+    list_symbols = [i for i in orders_df.Symbol.unique()]
+    all_symbols = get_data(list_symbols, pd.date_range(start_date, end_date))
+
+    # ADD ALL SYMBOLS IN orders_df
+    for sym in list_symbols:
+        orders_df.ix[0, sym] = "0"
+
+    leverage_max = 1.5
+    cash = start_val
+    for i in range(orders_df.shape[0]):
+        # copy down all symbol holdings
+        if i > 0:
+            for sym in list_symbols:
+                orders_df.ix[i, sym] = orders_df.ix[i - 1, sym]
+
+        # ADD ORDER
+        sym = orders_df.ix[i, "Symbol"]
+        original_amt = float(orders_df.ix[i, sym])
+        add_amt = float(orders_df.ix[i, "Shares"]) if orders_df.ix[i, 'Order'] == 'BUY' else -float(
+            orders_df.ix[i, "Shares"])
+        orders_df.ix[i, sym] = original_amt + add_amt
+
+        # CASH
+        orders_df.ix[i, "stock_price"] = all_symbols.ix[orders_df.index[i], sym]
+        orders_df.ix[i, "cash_used"] = -1.0 * orders_df.ix[i, "stock_price"] * add_amt
+        cash = cash + orders_df.ix[i, "cash_used"]
+        orders_df.ix[i, "cash"] = cash
+
+        # PORTFOLIO VALUE
+        stock_value = 0
+        leverage_stocks = 0
+        for sym in list_symbols:
+            stock_value = stock_value + float(orders_df.ix[i, sym]) * float(all_symbols.ix[orders_df.index[i], sym])
+            leverage_stocks = leverage_stocks + np.absolute(
+                float(orders_df.ix[i, sym]) * float(all_symbols.ix[orders_df.index[i], sym]))
+
+        orders_df.ix[i, "value"] = cash + stock_value
+        orders_df.ix[i, "leverage"] = leverage_stocks / float(orders_df.ix[i, "value"])
+
+    orders_df = orders_df[orders_df.leverage <= 1.5]
+    # print orders_df
+
+    return orders_df.value
+
 
 def test_code():
     # this is a helper function you can use to test your code
