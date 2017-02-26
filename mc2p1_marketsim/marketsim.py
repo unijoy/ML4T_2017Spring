@@ -25,12 +25,14 @@ def compute_portvals(orders_file="./orders/orders.csv", start_val=1000000):
         orders_df.ix[0, sym] = "0"
 
     leverage_max = 1.5
-    cash = start_val
+    orders_df.ix[0, "cash"] = start_val
     for i in range(orders_df.shape[0]):
+
         # copy down all symbol holdings
         if i > 0:
             for sym in list_symbols:
                 orders_df.ix[i, sym] = orders_df.ix[i - 1, sym]
+                orders_df.ix[i, "cash"] = orders_df.ix[i - 1, "cash"]
 
         # ADD ORDER
         sym = orders_df.ix[i, "Symbol"]
@@ -42,8 +44,7 @@ def compute_portvals(orders_file="./orders/orders.csv", start_val=1000000):
         # CASH
         orders_df.ix[i, "stock_price"] = all_symbols.ix[orders_df.index[i], sym]
         orders_df.ix[i, "cash_used"] = -1.0 * orders_df.ix[i, "stock_price"] * add_amt
-        cash = cash + orders_df.ix[i, "cash_used"]
-        orders_df.ix[i, "cash"] = cash
+        orders_df.ix[i, "cash"] = orders_df.ix[i, "cash"] + orders_df.ix[i, "cash_used"]
 
         # PORTFOLIO VALUE
         stock_value = 0
@@ -53,12 +54,18 @@ def compute_portvals(orders_file="./orders/orders.csv", start_val=1000000):
             leverage_stocks = leverage_stocks + np.absolute(
                 float(orders_df.ix[i, sym]) * float(all_symbols.ix[orders_df.index[i], sym]))
 
-        orders_df.ix[i, "value"] = cash + stock_value
+        orders_df.ix[i, "value"] = orders_df.ix[i, "cash"] + stock_value
         orders_df.ix[i, "leverage"] = leverage_stocks / float(orders_df.ix[i, "value"])
 
-    orders_df = orders_df[orders_df.leverage <= 1.5]
-    # print orders_df
+        # CHECK OVERLEVERAGE
+        if orders_df.ix[i, "leverage"] > 1.5:
+            # print 'OVERLEVERAGE: ' , orders_df.index[i]
+            for sym in list_symbols:
+                orders_df.ix[i, sym] = orders_df.ix[i - 1, sym]
+                orders_df.ix[i, "cash"] = orders_df.ix[i - 1, "cash"]
 
+    # print orders_df
+    orders_df = orders_df[orders_df.leverage <= 1.5]
     return orders_df.value
 
 
